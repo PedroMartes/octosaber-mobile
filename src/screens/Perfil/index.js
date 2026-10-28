@@ -31,7 +31,11 @@ export default function PerfilScreen({ navigation }) {
         <View>
           <Text style={styles.sectionTitle}>Minha Aprenidagem</Text>
           <View style={styles.menuGroup}>
-            <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('Certificados')}
+              activeOpacity={0.7}
+            >
               <View style={styles.menuItemLeft}>
                 <Award color={theme.colors.lime} size={20} />
                 <Text style={styles.menuItemText}>Meus Certificados</Text>

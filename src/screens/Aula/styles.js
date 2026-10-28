@@ -1,0 +1,157 @@
+import { StyleSheet } from 'react-native';
+import { theme } from '../../styles/theme';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  headerNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: theme.colors.navy2,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+  },
+  headerTitle: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  videoArea: {
+    width: '100%',
+    height: 220,
+    backgroundColor: theme.colors.navy,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderTopWidth: 1,
+    borderColor: theme.colors.line,
+  },
+  playIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.lime,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    padding: 20,
+    gap: 20,
+  },
+  lessonHeader: {
+    gap: 6,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.navy2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+  },
+  badgeText: {
+    color: theme.colors.lime,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  lessonTitle: {
+    color: theme.colors.white,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  lessonDesc: {
+    color: theme.colors.muted,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  btnComplete: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.navy2,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.lime,
+  },
+  btnCompleteActive: {
+    backgroundColor: theme.colors.lime,
+  },
+  btnCompleteText: {
+    color: theme.colors.lime,
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  btnCompleteTextActive: {
+    color: '#112000',
+  },
+  sectionTitle: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  materialCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.navy2,
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+  },
+  materialInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  materialTitle: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  materialSub: {
+    color: theme.colors.muted,
+    fontSize: 12,
+  },
+  footerNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 8,
+  },
+  navButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.navy2,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+  },
+  navButtonText: {
+    color: theme.colors.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+});

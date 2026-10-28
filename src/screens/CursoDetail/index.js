@@ -43,7 +43,12 @@ export default function CursoDetailScreen({ navigation }) {
           <Text style={styles.sectionTitle}>Conteúdo do Curso</Text>
           <View style={{ marginTop: 12 }}>
             {mockAulas.map((aula) => (
-              <TouchableOpacity key={aula.id} style={styles.aulaCard} activeOpacity={0.8}>
+              <TouchableOpacity
+                key={aula.id}
+                style={styles.aulaCard}
+                onPress={() => navigation.navigate('Aula')}
+                activeOpacity={0.8}
+              >
                 <View style={styles.aulaInfo}>
                   <Text style={styles.aulaNumber}>{aula.numero}</Text>
                   <View style={{ flex: 1 }}>
