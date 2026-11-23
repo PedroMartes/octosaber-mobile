@@ -255,6 +255,28 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  emptyState: {
+    color: theme.colors.muted,
+    fontSize: 13,
+    marginTop: 12,
+  },
+  errorContainer: {
+    gap: 8,
+    padding: 14,
+    backgroundColor: theme.colors.navy2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+  },
+  errorText: {
+    color: theme.colors.red,
+    fontSize: 13,
+  },
+  retryText: {
+    color: theme.colors.lime,
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
   progressBarBg: {
     height: 6,
     backgroundColor: theme.colors.navy3,

@@ -5,15 +5,39 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import { School, User } from 'lucide-react-native';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
+import { loginWithEmail, loginWithRA } from '../../services/api';
 
 export default function LoginScreen({ navigation }) {
   const [tab, setTab] = useState('ra');
   const [ra, setRa] = useState('');
+  const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleLogin() {
+    setLoading(true);
+    setError('');
+
+    try {
+      if (tab === 'ra') {
+        await loginWithRA(ra.trim(), senha);
+      } else {
+        await loginWithEmail(email.trim(), senha);
+      }
+
+      navigation.navigate('HomeTabs');
+    } catch (loginError) {
+      setError(loginError.message || 'Não foi possível fazer login.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -33,7 +57,11 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.tabs}>
           <TouchableOpacity
             style={[styles.tabButton, tab === 'ra' && styles.tabActive]}
-            onPress={() => setTab('ra')}
+            onPress={() => {
+              setTab('ra');
+              setError('');
+            }}
+            disabled={loading}
           >
             <School
               size={18}
@@ -46,7 +74,11 @@ export default function LoginScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.tabButton, tab === 'adult' && styles.tabActive]}
-            onPress={() => setTab('adult')}
+            onPress={() => {
+              setTab('adult');
+              setError('');
+            }}
+            disabled={loading}
           >
             <User
               size={18}
@@ -67,6 +99,7 @@ export default function LoginScreen({ navigation }) {
               placeholderTextColor={theme.colors.muted}
               value={ra}
               onChangeText={setRa}
+              editable={!loading}
             />
             <Text style={styles.label}>Senha</Text>
             <TextInput
@@ -76,13 +109,8 @@ export default function LoginScreen({ navigation }) {
               secureTextEntry
               value={senha}
               onChangeText={setSenha}
+              editable={!loading}
             />
-            <TouchableOpacity
-              style={styles.btnPrimary}
-              onPress={() => navigation.navigate('HomeTabs')}
-            >
-              <Text style={styles.btnPrimaryText}>Entrar com RA</Text>
-            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.form}>
@@ -91,6 +119,12 @@ export default function LoginScreen({ navigation }) {
               style={styles.input}
               placeholder="seu@email.com"
               placeholderTextColor={theme.colors.muted}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
             />
             <Text style={styles.label}>Senha</Text>
             <TextInput
@@ -98,15 +132,29 @@ export default function LoginScreen({ navigation }) {
               placeholder="Senha"
               placeholderTextColor={theme.colors.muted}
               secureTextEntry
+              value={senha}
+              onChangeText={setSenha}
+              editable={!loading}
             />
-            <TouchableOpacity
-              style={styles.btnPrimary}
-              onPress={() => navigation.navigate('HomeTabs')}
-            >
-              <Text style={styles.btnPrimaryText}>Continuar</Text>
-            </TouchableOpacity>
           </View>
         )}
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.btnPrimary, loading && styles.btnDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          {loading ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.btnPrimaryText}>
+              {tab === 'ra' ? 'Entrar com RA' : 'Continuar'}
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

@@ -4,17 +4,31 @@ import { ArrowLeft, CheckCircle2, XCircle, Clock, Zap } from 'lucide-react-nativ
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 
-const mockDesempenho = [
-  { disciplina: 'Direito Constitucional', acertos: '8/10', porc: '80%' },
-  { disciplina: 'Língua Portuguesa', acertos: '15/20', porc: '75%' },
-  { disciplina: 'Raciocínio Lógico', acertos: '7/10', porc: '70%' },
-];
+function formatDuration(totalSeconds = 0) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours) return `${hours}h ${minutes}m`;
+  if (minutes) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
 
-export default function ResultadoSimuladoScreen({ navigation }) {
+export default function ResultadoSimuladoScreen({ navigation, route }) {
+  const result = route.params?.result;
+  const total = result?.total || 0;
+  const correct = result?.correct || 0;
+  const incorrect = Math.max(0, total - correct);
+  const percentage = total ? Math.round((correct / total) * 100) : 0;
+  const title =
+    percentage >= 80
+      ? 'Excelente desempenho!'
+      : percentage >= 60
+        ? 'Bom trabalho!'
+        : 'Continue praticando!';
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Header / Voltar */}
         <View style={styles.headerNav}>
           <TouchableOpacity
             style={styles.backButton}
@@ -26,56 +40,71 @@ export default function ResultadoSimuladoScreen({ navigation }) {
           <Text style={styles.headerTitle}>Resultado do Simulado</Text>
         </View>
 
-        {/* Score Principal */}
         <View style={styles.scoreCard}>
           <View style={styles.scoreCircle}>
-            <Text style={styles.scorePercentage}>77%</Text>
+            <Text style={styles.scorePercentage}>{percentage}%</Text>
             <Text style={styles.scoreSubtext}>Aproveitamento</Text>
           </View>
-          <Text style={styles.scoreTitle}>Excelente Desempenho!</Text>
+          <Text style={styles.scoreTitle}>{title}</Text>
         </View>
 
-        {/* Métricas do Simulado */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <CheckCircle2 color={theme.colors.lime} size={20} />
-            <Text style={[styles.statValue, { color: theme.colors.lime }]}>30</Text>
+            <Text style={[styles.statValue, { color: theme.colors.lime }]}>
+              {correct}
+            </Text>
             <Text style={styles.statLabel}>Acertos</Text>
           </View>
 
           <View style={styles.statCard}>
             <XCircle color={theme.colors.red} size={20} />
-            <Text style={[styles.statValue, { color: theme.colors.red }]}>9</Text>
+            <Text style={[styles.statValue, { color: theme.colors.red }]}>
+              {incorrect}
+            </Text>
             <Text style={styles.statLabel}>Erros</Text>
           </View>
 
           <View style={styles.statCard}>
             <Clock color={theme.colors.muted} size={20} />
-            <Text style={[styles.statValue, { color: theme.colors.white }]}>1h 45m</Text>
+            <Text style={[styles.statValue, { color: theme.colors.white }]}>
+              {formatDuration(result?.elapsedSeconds)}
+            </Text>
             <Text style={styles.statLabel}>Tempo</Text>
           </View>
 
           <View style={styles.statCard}>
             <Zap color={theme.colors.gold} size={20} />
-            <Text style={[styles.statValue, { color: theme.colors.gold }]}>+120 XP</Text>
+            <Text style={[styles.statValue, { color: theme.colors.gold }]}>
+              +{result?.xp || 0} XP
+            </Text>
             <Text style={styles.statLabel}>Ganhos</Text>
           </View>
         </View>
 
-        {/* Desempenho por Disciplina */}
         <View style={styles.feedbackCard}>
           <Text style={styles.sectionTitle}>Desempenho por Disciplina</Text>
-          {mockDesempenho.map((item, index) => (
-            <View key={index} style={styles.disciplineRow}>
-              <Text style={styles.disciplineName}>{item.disciplina}</Text>
-              <Text style={styles.disciplineScore}>
-                {item.acertos} ({item.porc})
-              </Text>
-            </View>
-          ))}
+          {result?.byDiscipline?.length ? (
+            result.byDiscipline.map((item) => {
+              const disciplinePercentage = item.total
+                ? Math.round((item.correct / item.total) * 100)
+                : 0;
+              return (
+                <View key={item.disciplina} style={styles.disciplineRow}>
+                  <Text style={styles.disciplineName}>{item.disciplina}</Text>
+                  <Text style={styles.disciplineScore}>
+                    {item.correct}/{item.total} ({disciplinePercentage}%)
+                  </Text>
+                </View>
+              );
+            })
+          ) : (
+            <Text style={styles.disciplineName}>
+              Nenhum resultado de desempenho disponível.
+            </Text>
+          )}
         </View>
 
-        {/* Botões de Ação */}
         <View style={{ gap: 10, marginTop: 8 }}>
           <TouchableOpacity
             style={styles.btnPrimary}
@@ -87,7 +116,7 @@ export default function ResultadoSimuladoScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.btnSecondary}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.replace('Simulados')}
             activeOpacity={0.8}
           >
             <Text style={styles.btnSecondaryText}>Refazer Simulado</Text>

@@ -1,35 +1,84 @@
-import React, { useState } from 'react';
-import { View, Text, SafeAreaView, TextInput, FlatList, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
 import { Search, ArrowLeft } from 'lucide-react-native';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
-
-const EBOOKS_DADOS = [
-  { id: '1', titulo: 'Guia Definitivo do ENEM', categoria: 'E-book', autor: 'Prof. Carlos Silva', paginas: 120 },
-  { id: '2', titulo: 'Fórmulas Essenciais de Física', categoria: 'Resumo', autor: 'Profa. Ana Costa', paginas: 15 },
-  { id: '3', titulo: 'Manual de Redação Nota 1000', categoria: 'Guia', autor: 'Prof. Roberto Melo', paginas: 45 },
-  { id: '4', titulo: 'Compêndio de Química Orgânica', categoria: 'E-book', autor: 'Profa. Juliana Lima', paginas: 88 },
-];
+import { getAssetUrl, getBooks } from '../../services/api';
 
 export default function BibliotecaScreen({ navigation }) {
   const [busca, setBusca] = useState('');
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const livrosFiltrados = EBOOKS_DADOS.filter(
-    (item) =>
-      item.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-      item.categoria.toLowerCase().includes(busca.toLowerCase())
-  );
+  useEffect(() => {
+    let active = true;
+    getBooks()
+      .then((data) => {
+        if (active) setBooks(data);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredBooks = useMemo(() => {
+    const query = busca.trim().toLowerCase();
+    if (!query) return books;
+
+    return books.filter((book) =>
+      [book.titulo, book.genero, book.autor]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query))
+    );
+  }, [books, busca]);
+
+  async function handleReadBook(book) {
+    const url = getAssetUrl(book.url_externa);
+    if (!url) {
+      setError('Este livro ainda não possui um link de acesso.');
+      return;
+    }
+
+    try {
+      await Linking.openURL(url);
+    } catch (openError) {
+      setError(openError.message || 'Não foi possível abrir o livro.');
+    }
+  }
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardInfo}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>{item.categoria}</Text>
+          <Text style={styles.badgeText}>{item.genero || 'Livro'}</Text>
         </View>
         <Text style={styles.cardTitle}>{item.titulo}</Text>
-        <Text style={styles.cardMeta}>{item.autor} • {item.paginas} pág.</Text>
+        <Text style={styles.cardMeta}>
+          {[item.autor, item.descricao].filter(Boolean).join(' • ')}
+        </Text>
       </View>
-      <TouchableOpacity style={styles.readButton} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={[styles.readButton, !item.url_externa && { opacity: 0.5 }]}
+        onPress={() => handleReadBook(item)}
+        activeOpacity={0.8}
+      >
         <Text style={styles.readButtonText}>Ler</Text>
       </TouchableOpacity>
     </View>
@@ -38,8 +87,8 @@ export default function BibliotecaScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={livrosFiltrados}
-        keyExtractor={(item) => item.id}
+        data={filteredBooks}
+        keyExtractor={(item) => String(item.id_livro)}
         renderItem={renderItem}
         contentContainerStyle={styles.content}
         ListHeaderComponent={
@@ -68,11 +117,17 @@ export default function BibliotecaScreen({ navigation }) {
                 onChangeText={setBusca}
               />
             </View>
+            {error ? (
+              <Text style={{ color: theme.colors.red, marginBottom: 12 }}>{error}</Text>
+            ) : null}
+            {loading ? <ActivityIndicator color={theme.colors.lime} /> : null}
           </>
         }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>Nenhum material encontrado.</Text>
-        }
+        ListEmptyComponent={!loading ? (
+          <Text style={styles.emptyText}>
+            {error ? '' : 'Nenhum livro encontrado.'}
+          </Text>
+        ) : null}
       />
     </SafeAreaView>
   );

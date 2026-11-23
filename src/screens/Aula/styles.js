@@ -35,6 +35,20 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: theme.colors.line,
   },
+  videoMessage: {
+    color: theme.colors.muted,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  videoStatus: {
+    marginTop: 12,
+  },
+  videoError: {
+    color: theme.colors.red,
+    fontSize: 13,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
   playIconContainer: {
     width: 56,
     height: 56,

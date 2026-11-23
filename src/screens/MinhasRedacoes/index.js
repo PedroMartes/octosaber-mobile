@@ -1,38 +1,44 @@
-import React from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
-import { ArrowLeft, Clock, CheckCircle2, ChevronRight, FileText } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { ArrowLeft, ChevronRight } from 'lucide-react-native';
 import { theme } from '../../styles/theme';
+import { getEssays } from '../../services/api';
 import { styles } from './styles';
 
-const mockRedacoes = [
-  {
-    id: '1',
-    tema: 'O impacto da inteligência artificial na segurança pública e no mercado de trabalho',
-    data: '24 Out 2026',
-    status: 'corrigida',
-    nota: '880/1000',
-  },
-  {
-    id: '2',
-    tema: 'Os desafios da educação inclusiva na era digital',
-    data: '18 Out 2026',
-    status: 'corrigida',
-    nota: '920/1000',
-  },
-  {
-    id: '3',
-    tema: 'Mobilidade urbana e os transportes sustentáveis nas metrópoles',
-    data: '26 Out 2026',
-    status: 'em_avaliacao',
-    nota: null,
-  },
-];
-
 export default function MinhasRedacoesScreen({ navigation }) {
+  const [essays, setEssays] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    getEssays()
+      .then((data) => {
+        if (active) setEssays(data);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Header / Voltar */}
         <View style={styles.headerNav}>
           <TouchableOpacity
             style={styles.backButton}
@@ -45,55 +51,90 @@ export default function MinhasRedacoesScreen({ navigation }) {
         </View>
 
         <Text style={styles.subtitle}>
-          Acompanhe as suas submissões e avaliações detalhadas
+          Acompanhe as redações enviadas e suas avaliações.
         </Text>
 
-        {mockRedacoes.map((item) => {
-          const isCompleted = item.status === 'corrigida';
+        {loading ? <ActivityIndicator color={theme.colors.lime} /> : null}
+        {error ? <Text style={{ color: theme.colors.red }}>{error}</Text> : null}
+        {!loading && !error && essays.length === 0 ? (
+          <View style={styles.essayCard}>
+            <Text style={styles.essayTitle}>Você ainda não enviou redações.</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Redacao')}>
+              <Text style={{ color: theme.colors.lime }}>Escrever redação</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {essays.map((item) => {
+          const status = String(item.status || 'ENVIADA').toUpperCase();
+          const isCompleted =
+            status.includes('CORRIG') ||
+            status.includes('AVALI') ||
+            item.nota !== null && item.nota !== undefined;
+          const expanded = expandedId === item.id_redacao;
+          const date = item.enviada_em
+            ? String(item.enviada_em).split(' ')[0]
+            : 'Data indisponível';
+
           return (
-            <View key={item.id} style={styles.essayCard}>
+            <View key={item.id_redacao} style={styles.essayCard}>
               <View style={styles.cardHeader}>
                 <View
                   style={[
                     styles.statusBadge,
-                    isCompleted ? styles.statusBadgeCompleted : styles.statusBadgePending,
+                    isCompleted
+                      ? styles.statusBadgeCompleted
+                      : styles.statusBadgePending,
                   ]}
                 >
                   <Text
                     style={
-                      isCompleted ? styles.statusTextCompleted : styles.statusTextPending
+                      isCompleted
+                        ? styles.statusTextCompleted
+                        : styles.statusTextPending
                     }
                   >
-                    {isCompleted ? 'CORRIGIDA' : 'EM AVALIAÇÃO'}
+                    {isCompleted ? 'AVALIADA' : status}
                   </Text>
                 </View>
-                <Text style={styles.dateText}>{item.data}</Text>
+                <Text style={styles.dateText}>{date}</Text>
               </View>
 
-              <Text style={styles.essayTitle}>{item.tema}</Text>
+              <Text style={styles.essayTitle}>
+                {item.titulo || item.tema || 'Redação sem título'}
+              </Text>
 
               <View style={styles.scoreRow}>
                 {isCompleted ? (
                   <View style={styles.scoreInfo}>
-                    <Text style={styles.scoreLabel}>Nota final:</Text>
+                    <Text style={styles.scoreLabel}>Nota:</Text>
                     <Text style={styles.scoreValue}>{item.nota}</Text>
                   </View>
                 ) : (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Clock color={theme.colors.gold} size={16} />
-                    <Text style={{ color: theme.colors.gold, fontSize: 13 }}>
-                      Em processo de correção
-                    </Text>
-                  </View>
+                  <Text style={{ color: theme.colors.gold, fontSize: 13 }}>
+                    Aguardando avaliação
+                  </Text>
                 )}
 
-                <TouchableOpacity style={styles.btnDetails} activeOpacity={0.8}>
+                <TouchableOpacity
+                  style={styles.btnDetails}
+                  onPress={() =>
+                    setExpandedId(expanded ? null : item.id_redacao)
+                  }
+                  activeOpacity={0.8}
+                >
                   <Text style={styles.btnDetailsText}>
-                    {isCompleted ? 'Ver Correção' : 'Ver Texto'}
+                    {expanded ? 'Fechar texto' : 'Ver texto'}
                   </Text>
                   <ChevronRight color={theme.colors.muted} size={16} />
                 </TouchableOpacity>
               </View>
+
+              {expanded ? (
+                <Text style={{ color: theme.colors.muted, lineHeight: 20 }}>
+                  {item.texto}
+                </Text>
+              ) : null}
             </View>
           );
         })}

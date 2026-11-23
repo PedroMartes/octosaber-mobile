@@ -60,6 +60,18 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  btnAccess: {
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.lime,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  btnAccessText: {
+    color: theme.colors.background,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   sectionTitle: {
     color: theme.colors.white,
     fontSize: 18,

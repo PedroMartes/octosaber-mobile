@@ -1,105 +1,147 @@
-import React from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
-import { ArrowLeft, Award, Download, Clock } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Linking,
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { ArrowLeft, Award, Download } from 'lucide-react-native';
 import { theme } from '../../styles/theme';
+import { getAssetUrl, getCertificates } from '../../services/api';
 import { styles } from './styles';
 
-const mockCertificados = [
-    {
-        id: '1',
-        curso: 'Direito Constitucional Fundamental',
-        cargaHoraria: '40 horas',
-        dataEmissao: '12 Out 2026',
-        status: 'emitido',
-    },
-    {
-        id: '2',
-        curso: 'Língua Portuguesa para Concursos',
-        cargaHoraria: '60 horas',
-        dataEmissao: '05 Set 2026',
-        status: 'emitido',
-    },
-    {
-        id: '3',
-        curso: 'Raciocínio Lógico e Matemática',
-        cargaHoraria: '50 horas',
-        progresso: '75%',
-        status: 'em_andamento',
-    },
-];
-
 export default function CertificadosScreen({ navigation }) {
-    return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.content}>
-                {/* Topo / Voltar */}
-                <View style={styles.headerNav}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.goBack()}
-                        activeOpacity={0.8}
-                    >
-                        <ArrowLeft color={theme.colors.white} size={20} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Meus Certificados</Text>
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    getCertificates()
+      .then((data) => {
+        if (active) setCertificates(data);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleDownload(certificate) {
+    const url = getAssetUrl(certificate.url_certificado);
+    if (!url) {
+      setError('Este certificado ainda não possui um arquivo disponível.');
+      return;
+    }
+
+    try {
+      await Linking.openURL(url);
+    } catch (openError) {
+      setError(openError.message || 'Não foi possível abrir o certificado.');
+    }
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.headerNav}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
+            <ArrowLeft color={theme.colors.white} size={20} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Meus Certificados</Text>
+        </View>
+
+        <Text style={styles.subtitle}>
+          Certificados emitidos para a sua conta.
+        </Text>
+
+        {loading ? <ActivityIndicator color={theme.colors.lime} /> : null}
+        {error ? <Text style={{ color: theme.colors.red }}>{error}</Text> : null}
+        {!loading && !error && certificates.length === 0 ? (
+          <Text style={styles.subtitle}>Nenhum certificado disponível.</Text>
+        ) : null}
+
+        {certificates.map((item) => {
+          const issued =
+            String(item.status || '').toUpperCase() === 'EMITIDO' ||
+            Boolean(item.url_certificado);
+          const date = item.data_emissao
+            ? String(item.data_emissao).split(' ')[0]
+            : null;
+
+          return (
+            <View key={item.id_certificado} style={styles.certCard}>
+              <View style={styles.cardHeader}>
+                <Award
+                  color={issued ? theme.colors.lime : theme.colors.muted}
+                  size={24}
+                />
+                <View
+                  style={[
+                    styles.badge,
+                    issued ? styles.badgeIssued : styles.badgeProgress,
+                  ]}
+                >
+                  <Text
+                    style={
+                      issued ? styles.badgeTextIssued : styles.badgeTextProgress
+                    }
+                  >
+                    {item.status || 'REGISTRADO'}
+                  </Text>
                 </View>
+              </View>
 
-                <Text style={styles.subtitle}>
-                    Visualize e faça download das suas conquistas acadêmicas
+              <View>
+                <Text style={styles.certTitle}>
+                  {item.titulo || item.curso || 'Certificado'}
                 </Text>
+                {item.carga_horaria ? (
+                  <Text style={styles.certMeta}>
+                    Carga horária: {item.carga_horaria} horas
+                  </Text>
+                ) : null}
+                {item.codigo_validacao ? (
+                  <Text style={styles.certMeta}>
+                    Código: {item.codigo_validacao}
+                  </Text>
+                ) : null}
+              </View>
 
-                {mockCertificados.map((item) => {
-                    const isIssued = item.status === 'emitido';
-                    return (
-                        <View key={item.id} style={styles.certCard}>
-                            <View style={styles.cardHeader}>
-                                <Award color={isIssued ? theme.colors.lime : theme.colors.muted} size={24} />
-                                <View
-                                    style={[
-                                        styles.badge,
-                                        isIssued ? styles.badgeIssued : styles.badgeProgress,
-                                    ]}
-                                >
-                                    <Text
-                                        style={
-                                            isIssued ? styles.badgeTextIssued : styles.badgeTextProgress
-                                        }
-                                    >
-                                        {isIssued ? 'DISPONÍVEL' : 'EM ANDAMENTO'}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <View>
-                                <Text style={styles.certTitle}>{item.curso}</Text>
-                                <Text style={styles.certMeta}>
-                                    Carga Horária: {item.cargaHoraria}
-                                </Text>
-                            </View>
-
-                            <View style={styles.cardFooter}>
-                                {isIssued ? (
-                                    <>
-                                        <Text style={styles.certMeta}>Emitido em: {item.dataEmissao}</Text>
-                                        <TouchableOpacity style={styles.btnDownload} activeOpacity={0.8}>
-                                            <Download color="#112000" size={16} />
-                                            <Text style={styles.btnDownloadText}>Download PDF</Text>
-                                        </TouchableOpacity>
-                                    </>
-                                ) : (
-                                    <>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <Clock color={theme.colors.muted} size={16} />
-                                            <Text style={styles.certMeta}>Conclusão pendente</Text>
-                                        </View>
-                                        <Text style={styles.progressText}>{item.progresso} concluído</Text>
-                                    </>
-                                )}
-                            </View>
-                        </View>
-                    );
-                })}
-            </ScrollView>
-        </SafeAreaView>
-    );
+              <View style={styles.cardFooter}>
+                <Text style={styles.certMeta}>
+                  {date ? `Emitido em: ${date}` : 'Data não informada'}
+                </Text>
+                {item.url_certificado ? (
+                  <TouchableOpacity
+                    style={styles.btnDownload}
+                    onPress={() => handleDownload(item)}
+                    activeOpacity={0.8}
+                  >
+                    <Download color="#112000" size={16} />
+                    <Text style={styles.btnDownloadText}>Abrir certificado</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <Text style={styles.certMeta}>Arquivo ainda não disponível</Text>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </SafeAreaView>
+  );
 }

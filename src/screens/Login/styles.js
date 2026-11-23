@@ -102,4 +102,12 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 16,
   },
+  btnDisabled: {
+    opacity: 0.7,
+  },
+  errorText: {
+    color: theme.colors.red,
+    fontSize: 13,
+    marginTop: 10,
+  },
 });
