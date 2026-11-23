@@ -20,6 +20,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    {
+      "web.output": "static"
+    },
     "plugins": [
       "expo-video"
     ]
