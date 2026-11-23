@@ -18,10 +18,8 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    {
-      "web.output": "static"
+      "favicon": "./assets/favicon.png",
+      "output": "single"
     },
     "plugins": [
       "expo-video"
