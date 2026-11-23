@@ -107,6 +107,51 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
+  levelBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.navy2,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+    gap: 8,
+    overflow: 'hidden',
+  },
+  levelBannerContent: {
+    flex: 1,
+    gap: 7,
+  },
+  levelBannerEyebrow: {
+    color: theme.colors.lime,
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  levelBannerTitle: {
+    color: theme.colors.white,
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  levelBannerXp: {
+    color: theme.colors.muted,
+    fontSize: 12,
+  },
+  levelProgressBackground: {
+    height: 6,
+    backgroundColor: theme.colors.navy3,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  levelProgressFill: {
+    height: '100%',
+    backgroundColor: theme.colors.lime,
+    borderRadius: 3,
+  },
+  levelBannerHint: {
+    color: theme.colors.muted,
+    fontSize: 10,
+  },
   xpCard: {
     backgroundColor: theme.colors.navy,
     borderRadius: 12,
@@ -244,6 +289,25 @@ export const styles = StyleSheet.create({
     borderColor: theme.colors.line,
     gap: 12,
     marginTop: 12,
+  },
+  carouselPagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  carouselDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.muted,
+    opacity: 0.5,
+  },
+  carouselDotActive: {
+    width: 16,
+    backgroundColor: theme.colors.lime,
+    opacity: 1,
   },
   continueTag: {
     color: theme.colors.lime,

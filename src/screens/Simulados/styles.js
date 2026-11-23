@@ -64,6 +64,38 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  selectionTitle: {
+    color: theme.colors.white,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  disciplineOptions: {
+    gap: 8,
+  },
+  disciplineChip: {
+    backgroundColor: theme.colors.navy2,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  disciplineChipSelected: {
+    backgroundColor: theme.colors.lime,
+    borderColor: theme.colors.lime,
+  },
+  disciplineChipText: {
+    color: theme.colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  disciplineChipTextSelected: {
+    color: '#112000',
+  },
+  retryText: {
+    color: theme.colors.lime,
+    marginTop: 6,
+  },
   infoRow: {
     flexDirection: 'row',
     gap: 16,

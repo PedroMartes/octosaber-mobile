@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
     borderColor: theme.colors.line,
   },
   cardCompleted: {
-    opacity: 0.5,
+    opacity: 0.85,
   },
   cardInfo: {
     flex: 1,

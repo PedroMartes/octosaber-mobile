@@ -4,16 +4,26 @@ import {
   Text,
   SafeAreaView,
   ScrollView,
+  TextInput,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { BookOpen, Clock } from 'lucide-react-native';
+import { BookOpen, Clock, Search, X } from 'lucide-react-native';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 import { getCourses } from '../../services/api';
 
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export default function CursosScreen({ navigation }) {
   const [courses, setCourses] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -28,12 +38,46 @@ export default function CursosScreen({ navigation }) {
     loadCourses();
   }, [loadCourses]);
 
+  const normalizedSearchText = normalizeSearchText(searchText);
+  const filteredCourses = courses.filter((course) =>
+    [course.nome, course.categoria, course.nivel, course.descricao]
+      .filter(Boolean)
+      .some((value) => normalizeSearchText(value).includes(normalizedSearchText))
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <View>
-          <Text style={styles.title}>Cursos</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>Cursos</Text>
+          </View>
           <Text style={styles.subtitle}>Explore os materiais preparados para sua aprovação</Text>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <Search color={theme.colors.muted} size={20} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar cursos..."
+            placeholderTextColor={theme.colors.muted}
+            value={searchText}
+            onChangeText={setSearchText}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+            accessibilityLabel="Buscar cursos por nome, categoria, nível ou descrição"
+          />
+          {searchText ? (
+            <TouchableOpacity
+              onPress={() => setSearchText('')}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Limpar busca"
+            >
+              <X color={theme.colors.muted} size={20} />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {loading ? <ActivityIndicator color={theme.colors.lime} /> : null}
@@ -54,8 +98,11 @@ export default function CursosScreen({ navigation }) {
         {!loading && !error && courses.length === 0 ? (
           <Text style={styles.subtitle}>Nenhum curso disponível no momento.</Text>
         ) : null}
+        {!loading && !error && courses.length > 0 && filteredCourses.length === 0 ? (
+          <Text style={styles.emptyText}>Nenhum curso encontrado.</Text>
+        ) : null}
 
-        {courses.map((curso) => (
+        {filteredCourses.map((curso) => (
           <View key={curso.id_curso} style={styles.courseCard}>
             <View style={styles.cardHeader}>
               <View style={styles.badge}>

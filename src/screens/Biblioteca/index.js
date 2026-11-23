@@ -10,6 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import { Search, ArrowLeft } from 'lucide-react-native';
+import Mascote from '../../components/Mascote';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 import { getAssetUrl, getBooks } from '../../services/api';
@@ -105,6 +106,7 @@ export default function BibliotecaScreen({ navigation }) {
                 <Text style={styles.title}>Biblioteca</Text>
                 <Text style={styles.subtitle}>Acesse e-books e resumos</Text>
               </View>
+              <Mascote size={60} />
             </View>
 
             <View style={styles.searchContainer}>

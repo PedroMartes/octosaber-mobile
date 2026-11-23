@@ -12,6 +12,7 @@ import {
   completeLesson,
   getCourse,
   getProgress,
+  reopenLesson,
 } from '../../services/api';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
@@ -63,20 +64,37 @@ export default function PlanoDeEstudosScreen({ navigation }) {
     : 0;
 
   async function toggleLesson(lesson) {
-    if (Number(lesson.concluida) === 1 || savingId) return;
+    if (savingId) return;
+    const markingComplete = Number(lesson.concluida) !== 1;
     setSavingId(lesson.id_aula);
     setError('');
     try {
-      await completeLesson(lesson.id_aula);
+      const progress = markingComplete
+        ? await completeLesson(lesson.id_aula)
+        : await reopenLesson(lesson.id_aula);
+      const completedValue = markingComplete ? 1 : 0;
+      const percentage = Number(progress.percentual_conclusao) || 0;
+
       setCourses((currentCourses) =>
-        currentCourses.map((course) => ({
-          ...course,
-          aulas: course.aulas.map((item) =>
-            String(item.id_aula) === String(lesson.id_aula)
-              ? { ...item, concluida: 1 }
-              : item
-          ),
-        }))
+        currentCourses.map((course) => {
+          const containsLesson = course.aulas.some(
+            (item) => String(item.id_aula) === String(lesson.id_aula)
+          );
+          return {
+            ...course,
+            ...(containsLesson
+              ? {
+                  percentual_conclusao: percentage,
+                  status: progress.status,
+                }
+              : {}),
+            aulas: course.aulas.map((item) =>
+              String(item.id_aula) === String(lesson.id_aula)
+                ? { ...item, concluida: completedValue }
+                : item
+            ),
+          };
+        })
       );
     } catch (saveError) {
       setError(saveError.message);
@@ -153,8 +171,18 @@ export default function PlanoDeEstudosScreen({ navigation }) {
                   <TouchableOpacity
                     style={[styles.checkbox, isCompleted && styles.checkboxActive]}
                     onPress={() => toggleLesson(lesson)}
-                    disabled={isCompleted || Boolean(savingId)}
+                    disabled={Boolean(savingId)}
                     activeOpacity={0.8}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={
+                      isCompleted
+                        ? `Desmarcar aula ${lesson.numero_aula} como concluída`
+                        : `Marcar aula ${lesson.numero_aula} como concluída`
+                    }
+                    accessibilityState={{
+                      checked: isCompleted,
+                      disabled: Boolean(savingId),
+                    }}
                   >
                     {isSaving ? (
                       <ActivityIndicator color={theme.colors.lime} size="small" />

@@ -26,10 +26,6 @@ function getApiUrl() {
       return url.toString();
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      url.hostname = browserHostname;
-      return url.toString();
-    }
   }
 
   return API_URL;
@@ -142,6 +138,13 @@ export function completeLesson(idAula) {
   });
 }
 
+export function reopenLesson(idAula) {
+  return request('reabrir_aula', {
+    method: 'POST',
+    body: { id_aula: idAula },
+  });
+}
+
 export async function getBooks(busca = '') {
   const data = await request('livros', { query: busca ? { busca } : {} });
   return data.livros;
@@ -150,6 +153,11 @@ export async function getBooks(busca = '') {
 export async function getMaterials() {
   const data = await request('materiais');
   return data.materiais;
+}
+
+export async function getDisciplines() {
+  const data = await request('disciplinas');
+  return data.disciplinas;
 }
 
 export async function getQuestions(limite = 20, idDisciplina) {

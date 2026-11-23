@@ -11,6 +11,7 @@ import CertificadosScreen from '../screens/Certificados';
 import BibliotecaScreen from '../screens/Biblioteca';
 import MateriaisScreen from '../screens/Materiais';
 import PlanoDeEstudos from '../screens/PlanoDeEstudos';
+import MeusCursosScreen from '../screens/MeusCursos';
 import TabRoutes from './TabRoutes';
 
 const Stack = createNativeStackNavigator();
@@ -30,6 +31,7 @@ export default function AppRoutes() {
       <Stack.Screen name="Biblioteca" component={BibliotecaScreen} />
       <Stack.Screen name="Materiais" component={MateriaisScreen} />
       <Stack.Screen name="PlanoDeEstudos" component={PlanoDeEstudos} />
+      <Stack.Screen name="MeusCursos" component={MeusCursosScreen} />
     </Stack.Navigator>
   );
 }

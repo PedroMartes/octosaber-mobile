@@ -9,6 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { Download, ArrowLeft } from 'lucide-react-native';
+import Mascote from '../../components/Mascote';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 import { getAssetUrl, getMaterials } from '../../services/api';
@@ -94,6 +95,7 @@ export default function MateriaisScreen({ navigation }) {
               <Text style={styles.title}>Materiais</Text>
               <Text style={styles.subtitle}>Acesse arquivos e materiais complementares</Text>
             </View>
+            <Mascote size={60} />
           </View>
         }
         ListEmptyComponent={

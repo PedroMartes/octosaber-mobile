@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { School, User } from 'lucide-react-native';
+import Mascote from '../../components/Mascote';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 import { loginWithEmail, loginWithRA } from '../../services/api';
@@ -47,6 +48,7 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.logoText}>OS</Text>
           </View>
           <Text style={styles.brandTitle}>Octosaber</Text>
+          <Mascote size={68} />
         </View>
 
         <Text style={styles.heroTitle}>Estude. Pratique. Conquiste.</Text>

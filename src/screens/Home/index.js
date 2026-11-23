@@ -4,8 +4,10 @@ import {
   Text,
   SafeAreaView,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -15,19 +17,24 @@ import {
   FileText,
   CheckSquare,
   BookOpen,
+  GraduationCap,
   Award,
   Library,
   FolderDown,
   Calendar,
 } from 'lucide-react-native';
+import Mascote from '../../components/Mascote';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 import { getHomeData } from '../../services/api';
 
 export default function HomeScreen({ navigation }) {
   const [homeData, setHomeData] = useState(null);
+  const [activeCourseIndex, setActiveCourseIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { width: windowWidth } = useWindowDimensions();
+  const carouselCardWidth = Math.max(1, windowWidth - 40);
 
   const loadHomeData = useCallback(() => {
     setLoading(true);
@@ -35,6 +42,7 @@ export default function HomeScreen({ navigation }) {
     return getHomeData()
       .then((data) => {
         setHomeData(data);
+        setActiveCourseIndex(0);
       })
       .catch((loadError) => {
         setError(loadError.message || 'Não foi possível carregar seus dados.');
@@ -53,15 +61,59 @@ export default function HomeScreen({ navigation }) {
   const user = homeData && homeData.user;
   const statistics = homeData && homeData.statistics;
   const courses = homeData && homeData.courses;
-  const currentCourse = courses && courses[0];
+  const enrolledCourses = (courses || []).filter((course) =>
+    ['ATIVO', 'CONCLUIDO'].includes(String(course.status).toUpperCase())
+  );
   const hoursStudied = statistics ? Number(statistics.horas_totais) || 0 : null;
   const xpTotal = statistics ? Number(statistics.xp_total) || 0 : null;
+  const levelExperience =
+    xpTotal === null ? null : Math.max(0, Math.floor(xpTotal));
+  const studentLevel =
+    statistics === null
+      ? null
+      : Math.max(1, Number(statistics.nivel_atual) || 1);
+  const levelStartExperience =
+    studentLevel === null || studentLevel === 1
+      ? 0
+      : (studentLevel - 1) * 10 + 1;
+  const nextLevelExperience =
+    studentLevel === null
+      ? 0
+      : studentLevel === 1
+        ? 11
+        : studentLevel * 10 + 1;
+  const experienceToNextLevel =
+    levelExperience === null
+      ? 0
+      : Math.max(0, nextLevelExperience - levelExperience);
+  const levelProgress =
+    levelExperience === null || studentLevel === null
+      ? 0
+      : Math.min(
+          100,
+          ((levelExperience - levelStartExperience) /
+            (nextLevelExperience - levelStartExperience)) *
+            100
+        );
+  const levelMascot =
+    studentLevel !== null && studentLevel >= 20
+      ? 'nivel20'
+      : studentLevel !== null && studentLevel >= 10
+        ? 'nivel10'
+        : 'principal';
   const currentStreak = statistics ? Number(statistics.sequencia_atual) || 0 : null;
   const studiedDays = statistics ? Number(statistics.dias_estudados) || 0 : null;
   const bestStreak = statistics ? Number(statistics.maior_sequencia) || 0 : null;
-  const courseProgress = currentCourse
-    ? Math.max(0, Math.min(100, Number(currentCourse.percentual_conclusao) || 0))
-    : 0;
+  const carouselInterval = carouselCardWidth + 12;
+
+  function handleCourseCarouselScroll(event) {
+    const index = Math.round(
+      event.nativeEvent.contentOffset.x / carouselInterval
+    );
+    setActiveCourseIndex(
+      Math.max(0, Math.min(index, enrolledCourses.length - 1))
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,6 +162,30 @@ export default function HomeScreen({ navigation }) {
           </View>
 
         </View>
+
+        {studentLevel !== null ? (
+          <View style={styles.levelBanner}>
+            <View style={styles.levelBannerContent}>
+              <Text style={styles.levelBannerEyebrow}>SEU NÍVEL</Text>
+              <Text style={styles.levelBannerTitle}>Nível {studentLevel}</Text>
+              <Text style={styles.levelBannerXp}>
+                {levelExperience.toLocaleString('pt-BR')} XP acumulados
+              </Text>
+              <View style={styles.levelProgressBackground}>
+                <View
+                  style={[
+                    styles.levelProgressFill,
+                    { width: `${levelProgress}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.levelBannerHint}>
+                Faltam {experienceToNextLevel} XP para o nível {studentLevel + 1}
+              </Text>
+            </View>
+            <Mascote variant={levelMascot} size={112} />
+          </View>
+        ) : null}
 
         <View>
           <View style={styles.sectionHeaderRow}>
@@ -173,20 +249,65 @@ export default function HomeScreen({ navigation }) {
         {/* Continuar Estudando */}
         <View>
           <Text style={styles.sectionTitle}>Seus cursos</Text>
-          {currentCourse ? (
-            <View style={styles.continueCard}>
-              <Text style={styles.continueTag}>CURSO</Text>
-              <Text style={styles.continueCourseTitle}>{currentCourse.curso}</Text>
-              <View style={styles.dayProgressInfo}>
-                <Text style={styles.dayProgressLabel}>Conclusão</Text>
-                <Text style={styles.dayProgressValue}>{courseProgress}%</Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View
-                  style={[styles.progressBarFill, { width: `${courseProgress}%` }]}
-                />
-              </View>
-            </View>
+          {enrolledCourses.length > 0 ? (
+            <>
+              <FlatList
+                data={enrolledCourses}
+                horizontal
+                nestedScrollEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(course) => String(course.id_curso)}
+                snapToInterval={carouselInterval}
+                snapToAlignment="start"
+                decelerationRate="fast"
+                disableIntervalMomentum
+                onMomentumScrollEnd={handleCourseCarouselScroll}
+                renderItem={({ item: course }) => {
+                  const progress = Math.max(
+                    0,
+                    Math.min(100, Number(course.percentual_conclusao) || 0)
+                  );
+                  return (
+                    <View
+                      style={[
+                        styles.continueCard,
+                        { width: carouselCardWidth, marginRight: 12 },
+                      ]}
+                    >
+                      <Text style={styles.continueTag}>CURSO</Text>
+                      <Text style={styles.continueCourseTitle}>
+                        {course.curso}
+                      </Text>
+                      <View style={styles.dayProgressInfo}>
+                        <Text style={styles.dayProgressLabel}>Conclusão</Text>
+                        <Text style={styles.dayProgressValue}>{progress}%</Text>
+                      </View>
+                      <View style={styles.progressBarBg}>
+                        <View
+                          style={[
+                            styles.progressBarFill,
+                            { width: `${progress}%` },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                  );
+                }}
+              />
+              {enrolledCourses.length > 1 ? (
+                <View style={styles.carouselPagination}>
+                  {enrolledCourses.map((course, index) => (
+                    <View
+                      key={String(course.id_curso)}
+                      style={[
+                        styles.carouselDot,
+                        index === activeCourseIndex && styles.carouselDotActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              ) : null}
+            </>
           ) : !loading && !error ? (
             <Text style={styles.emptyState}>
               Você ainda não está matriculado em cursos.
@@ -232,6 +353,16 @@ export default function HomeScreen({ navigation }) {
             >
               <BookOpen color={theme.colors.lime} size={24} />
               <Text style={styles.gridTitle}>Cursos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.gridCard}
+              onPress={() => navigation.navigate('MeusCursos')}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+            >
+              <GraduationCap color={theme.colors.lime} size={24} />
+              <Text style={styles.gridTitle}>Meus Cursos</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

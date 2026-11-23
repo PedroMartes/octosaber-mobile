@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -8,13 +8,21 @@ import {
   View,
 } from 'react-native';
 import { ArrowLeft, CheckCircle2, Clock3, ListChecks } from 'lucide-react-native';
-import { answerQuestion, getQuestions } from '../../services/api';
+import {
+  answerQuestion,
+  getDisciplines,
+  getQuestions,
+} from '../../services/api';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
 
 const QUESTION_LIMIT = 5;
 
 export default function SimuladosScreen({ navigation }) {
+  const [disciplines, setDisciplines] = useState([]);
+  const [selectedDiscipline, setSelectedDiscipline] = useState(null);
+  const [loadingDisciplines, setLoadingDisciplines] = useState(true);
+  const [disciplineError, setDisciplineError] = useState('');
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
@@ -25,14 +33,45 @@ export default function SimuladosScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const currentQuestion = questions[currentIndex];
+  const selectedDisciplineInfo = disciplines.find(
+    (discipline) =>
+      String(discipline.id_disciplina) === String(selectedDiscipline)
+  );
+  const selectedQuestionCount = selectedDisciplineInfo
+    ? Math.min(
+        Number(selectedDisciplineInfo.quantidade_questoes) || 0,
+        QUESTION_LIMIT
+      )
+    : QUESTION_LIMIT;
+  const selectedQuestionCountLabel = `${selectedQuestionCount} ${
+    selectedQuestionCount === 1 ? 'questão' : 'questões'
+  }`;
+
+  const loadDisciplines = useCallback(() => {
+    return getDisciplines()
+      .then(setDisciplines)
+      .catch((loadError) => setDisciplineError(loadError.message))
+      .finally(() => setLoadingDisciplines(false));
+  }, []);
+
+  useEffect(() => {
+    loadDisciplines();
+  }, [loadDisciplines]);
 
   async function startSimulation() {
     setLoading(true);
     setError('');
     try {
-      const availableQuestions = await getQuestions(QUESTION_LIMIT);
+      const availableQuestions = await getQuestions(
+        QUESTION_LIMIT,
+        selectedDiscipline
+      );
       if (!availableQuestions.length) {
-        setError('Nenhuma questão está cadastrada para este simulado.');
+        setError(
+          selectedDiscipline
+            ? 'Nenhuma questão disponível para esta matéria.'
+            : 'Nenhuma questão está cadastrada para este simulado.'
+        );
         return;
       }
 
@@ -130,6 +169,79 @@ export default function SimuladosScreen({ navigation }) {
 
         {!currentQuestion ? (
           <View style={styles.simuladoCard}>
+            <Text style={styles.selectionTitle}>Escolha a matéria</Text>
+            {loadingDisciplines ? (
+              <ActivityIndicator color={theme.colors.lime} />
+            ) : null}
+            {disciplineError ? (
+              <View>
+                <Text style={{ color: theme.colors.red }}>{disciplineError}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setLoadingDisciplines(true);
+                    setDisciplineError('');
+                    loadDisciplines();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.retryText}>Tentar carregar matérias novamente</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+            {!loadingDisciplines && !disciplineError ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.disciplineOptions}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.disciplineChip,
+                    selectedDiscipline === null && styles.disciplineChipSelected,
+                  ]}
+                  onPress={() => setSelectedDiscipline(null)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.disciplineChipText,
+                      selectedDiscipline === null && styles.disciplineChipTextSelected,
+                    ]}
+                  >
+                    Todas
+                  </Text>
+                </TouchableOpacity>
+                {disciplines.map((discipline) => {
+                  const isSelected =
+                    String(selectedDiscipline) === String(discipline.id_disciplina);
+                  return (
+                    <TouchableOpacity
+                      key={discipline.id_disciplina}
+                      style={[
+                        styles.disciplineChip,
+                        isSelected && styles.disciplineChipSelected,
+                      ]}
+                      onPress={() =>
+                        setSelectedDiscipline(discipline.id_disciplina)
+                      }
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.disciplineChipText,
+                          isSelected && styles.disciplineChipTextSelected,
+                        ]}
+                      >
+                        {discipline.nome} ({discipline.quantidade_questoes})
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            ) : null}
+            <Text style={styles.infoText}>
+              O simulado terá até {QUESTION_LIMIT} questões da matéria escolhida.
+            </Text>
             <View style={styles.cardHeader}>
               <Text style={styles.simuladoTitle}>Simulado rápido</Text>
               <View style={styles.badge}>
@@ -139,7 +251,11 @@ export default function SimuladosScreen({ navigation }) {
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
                 <ListChecks color={theme.colors.muted} size={16} />
-                <Text style={styles.infoText}>{QUESTION_LIMIT} questões</Text>
+                <Text style={styles.infoText}>
+                  {selectedDisciplineInfo
+                    ? selectedQuestionCountLabel
+                    : `Até ${QUESTION_LIMIT} questões`}
+                </Text>
               </View>
               <View style={styles.infoItem}>
                 <Clock3 color={theme.colors.muted} size={16} />
@@ -149,7 +265,7 @@ export default function SimuladosScreen({ navigation }) {
             <TouchableOpacity
               style={styles.btnStart}
               onPress={startSimulation}
-              disabled={loading}
+              disabled={loading || loadingDisciplines || Boolean(disciplineError)}
               activeOpacity={0.8}
             >
               {loading ? (
