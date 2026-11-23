@@ -90,6 +90,26 @@ export const styles = StyleSheet.create({
     padding: 14,
     color: theme.colors.white,
   },
+  passwordInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.navy2,
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+    borderRadius: 10,
+    paddingLeft: 14,
+    paddingRight: 8,
+  },
+  passwordField: {
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 14,
+    paddingRight: 8,
+    color: theme.colors.white,
+  },
+  passwordToggle: {
+    padding: 6,
+  },
   btnPrimary: {
     backgroundColor: theme.colors.lime,
     padding: 14,

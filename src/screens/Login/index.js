@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import { School, User } from 'lucide-react-native';
+import { Eye, EyeOff, School, User } from 'lucide-react-native';
 import Mascote from '../../components/Mascote';
 import { theme } from '../../styles/theme';
 import { styles } from './styles';
@@ -18,6 +18,7 @@ export default function LoginScreen({ navigation }) {
   const [ra, setRa] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -104,15 +105,30 @@ export default function LoginScreen({ navigation }) {
               editable={!loading}
             />
             <Text style={styles.label}>Senha</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Senha"
-              placeholderTextColor={theme.colors.muted}
-              secureTextEntry
-              value={senha}
-              onChangeText={setSenha}
-              editable={!loading}
-            />
+            <View style={styles.passwordInput}>
+              <TextInput
+                style={styles.passwordField}
+                placeholder="Senha"
+                placeholderTextColor={theme.colors.muted}
+                secureTextEntry={!mostrarSenha}
+                value={senha}
+                onChangeText={setSenha}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setMostrarSenha((visible) => !visible)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {mostrarSenha ? (
+                  <EyeOff size={20} color={theme.colors.muted} />
+                ) : (
+                  <Eye size={20} color={theme.colors.muted} />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           <View style={styles.form}>
@@ -129,15 +145,30 @@ export default function LoginScreen({ navigation }) {
               editable={!loading}
             />
             <Text style={styles.label}>Senha</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Senha"
-              placeholderTextColor={theme.colors.muted}
-              secureTextEntry
-              value={senha}
-              onChangeText={setSenha}
-              editable={!loading}
-            />
+            <View style={styles.passwordInput}>
+              <TextInput
+                style={styles.passwordField}
+                placeholder="Senha"
+                placeholderTextColor={theme.colors.muted}
+                secureTextEntry={!mostrarSenha}
+                value={senha}
+                onChangeText={setSenha}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.passwordToggle}
+                onPress={() => setMostrarSenha((visible) => !visible)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {mostrarSenha ? (
+                  <EyeOff size={20} color={theme.colors.muted} />
+                ) : (
+                  <Eye size={20} color={theme.colors.muted} />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
