@@ -11,11 +11,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#090D16",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.pedro_martes00.octosabermobile"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -23,6 +23,11 @@
     },
     "plugins": [
       "expo-video"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0ed460a1-7647-4d54-88f7-e01d64166678"
+      }
+    }
   }
 }
